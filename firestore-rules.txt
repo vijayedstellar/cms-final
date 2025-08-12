@@ -1,0 +1,22 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow authenticated users to read and write cms_users collection
+    match /cms_users/{userId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Allow authenticated users to read their own user document
+    match /cms_users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Allow administrators to manage all users
+    match /cms_users/{userId} {
+      allow read, write: if request.auth != null && 
+        exists(/databases/$(database)/documents/cms_users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/cms_users/$(request.auth.uid)).data.role == 'administrator' &&
+        get(/databases/$(database)/documents/cms_users/$(request.auth.uid)).data.status == 'active';
+    }
+  }
+}

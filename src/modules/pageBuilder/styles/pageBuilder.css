@@ -1,0 +1,69 @@
+/* Page Builder specific styles */
+.page-builder-container {
+  height: calc(100vh - 80px); /* Account for dashboard header */
+  display: flex;
+  flex-direction: column;
+}
+
+.page-builder-main {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+.component-library {
+  width: 280px;
+  min-width: 280px;
+  border-right: 1px solid #e5e7eb;
+  background: white;
+}
+
+.canvas-area {
+  flex: 1;
+  min-width: 0; /* Allow flex shrinking */
+  background: #f9fafb;
+  position: relative;
+}
+
+.properties-panel {
+  width: 320px;
+  min-width: 320px;
+  border-left: 1px solid #e5e7eb;
+  background: white;
+}
+
+/* Monaco Editor styles */
+.monaco-editor-container {
+  height: 400px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+/* Component drag and drop styles */
+.dragging {
+  opacity: 0.5;
+}
+
+.drop-zone {
+  border: 2px dashed #3b82f6;
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+/* Ensure Page Builder fits within dashboard layout */
+.page-builder-wrapper {
+  height: calc(100vh - 80px);
+  overflow: hidden;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .component-library {
+    width: 240px;
+    min-width: 240px;
+  }
+  
+  .properties-panel {
+    width: 280px;
+    min-width: 280px;
+  }
+}

@@ -1,0 +1,59 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to get user document
+    function getUserDoc() {
+      return get(/databases/$(database)/documents/cms_users/$(request.auth.uid));
+    }
+    
+    // Helper function to check if user is an active administrator
+    function isActiveAdmin() {
+      return request.auth != null && 
+        exists(/databases/$(database)/documents/cms_users/$(request.auth.uid)) &&
+        getUserDoc().data.role == 'administrator' &&
+        getUserDoc().data.status == 'active';
+    }
+    
+    // CMS Users collection rules
+    match /cms_users/{userId} {
+      // Allow users to read their own profile
+      allow read: if isAuthenticated() && request.auth.uid == userId;
+      
+      // Allow users to update their own profile (except role and status)
+      allow update: if isAuthenticated() && 
+        request.auth.uid == userId &&
+        // Ensure role and status cannot be changed by users
+        request.resource.data.role == resource.data.role &&
+        request.resource.data.status == resource.data.status &&
+        // Allow updating these specific fields
+        request.resource.data.keys().hasAll(['name', 'email', 'role', 'status', 'created_at']) &&
+        // Validate that required fields are present and unchanged where needed
+        request.resource.data.email is string &&
+        request.resource.data.name is string &&
+        request.resource.data.created_at == resource.data.created_at;
+      
+      // Allow administrators to manage any user document
+      allow read, write, delete: if isActiveAdmin();
+      
+      // Allow user creation - administrators can create any user, users can create their own profile
+      allow create: if isAuthenticated() && 
+        (isActiveAdmin() || request.auth.uid == userId);
+    }
+    
+    // CRITICAL: Allow collection-level operations for administrators
+    // This is needed for dashboard stats and user listing
+    match /cms_users/{document=**} {
+      allow list, read: if isActiveAdmin();
+    }
+    
+    // Additional rule to ensure administrators can query the collection
+    match /cms_users {
+      allow read: if isActiveAdmin();
+    }
+  }
+}
